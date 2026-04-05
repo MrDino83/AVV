@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AVV Beitragscheck</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;font-size:13px;background:#f5f4f0;color:#2C2C2A;min-height:100vh}
+.wrap{max-width:720px;margin:0 auto;padding:20px 16px}
+#lock-screen{position:fixed;inset:0;background:#f5f4f0;display:flex;align-items:center;justify-content:center;padding:20px;z-index:999}
+.lock-card{background:#fff;border:1px solid #E0DED8;border-radius:16px;padding:32px 28px;max-width:340px;width:100%;text-align:center}
+.lock-icon{width:48px;height:48px;border-radius:50%;background:#F1EFE8;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:22px}
+.lock-title{font-size:18px;font-weight:700;color:#1A1A18;margin-bottom:6px}
+.lock-sub{font-size:12px;color:#888780;margin-bottom:22px;line-height:1.5}
+.lock-input{width:100%;background:#F8F7F3;border:1px solid #E0DED8;border-radius:8px;color:#2C2C2A;font-family:inherit;font-size:15px;padding:11px 12px;outline:none;text-align:center;letter-spacing:.2em;margin-bottom:8px}
+.lock-input:focus{border-color:#1D9E75}
+.lock-err{font-size:12px;color:#A32D2D;margin-bottom:10px;min-height:16px}
+.lock-btn{width:100%;background:#1D9E75;color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:13px;font-weight:600;padding:11px;cursor:pointer}
+.lock-btn:hover{background:#169E6A}
+.lock-hint{font-size:11px;color:#C8C6C0;margin-top:14px}
+.logo-row{display:flex;align-items:center;gap:7px;margin-bottom:4px}
+.dot{width:8px;height:8px;border-radius:50%;background:#1D9E75}
+.logo-text{font-size:10px;font-weight:600;letter-spacing:.1em;color:#888780;text-transform:uppercase}
+h1{font-size:22px;font-weight:700;color:#1A1A18;margin-bottom:3px}
+.tagline{font-size:11px;color:#888780;margin-bottom:18px}
+.api-bar{background:#FFF9E6;border:1px solid #FAC775;border-radius:8px;padding:10px 12px;font-size:12px;color:#633806;margin-bottom:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.api-bar span{flex-shrink:0}
+.api-bar input{flex:1;min-width:200px;background:#fff;border:1px solid #E0DED8;border-radius:6px;font-family:monospace;font-size:12px;padding:5px 9px;outline:none;color:#2C2C2A}
+.api-bar input:focus{border-color:#1D9E75}
+.steps{display:flex;gap:0;margin-bottom:20px;border-radius:10px;overflow:hidden;border:1px solid #E0DED8}
+.step-btn{flex:1;padding:10px 8px;background:#fff;border:none;cursor:pointer;font-family:inherit;font-size:12px;color:#888780;display:flex;flex-direction:column;align-items:center;gap:3px;border-right:1px solid #E0DED8;transition:all .15s}
+.step-btn:last-child{border-right:none}
+.step-btn.active{background:#1D9E75;color:#fff}
+.step-btn.done{background:#E1F5EE;color:#0F6E56}
+.step-btn.locked{cursor:not-allowed;opacity:.45}
+.step-num{font-size:10px;font-weight:700;opacity:.7}
+.step-name{font-weight:500}
+.card{background:#fff;border:1px solid #E0DED8;border-radius:12px;padding:16px;margin-bottom:10px}
+.lbl{font-size:10px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:#888780;margin-bottom:8px;display:block}
+textarea{width:100%;background:#F8F7F3;border:1px solid #E0DED8;border-radius:8px;color:#2C2C2A;font-family:inherit;font-size:13px;line-height:1.65;padding:10px 12px;resize:vertical;min-height:180px;outline:none}
+textarea:focus{border-color:#1D9E75}
+select{background:#F8F7F3;border:1px solid #E0DED8;border-radius:8px;color:#2C2C2A;font-family:inherit;font-size:12px;padding:7px 10px;outline:none;cursor:pointer}
+.btn-primary{background:#1D9E75;color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:13px;font-weight:600;padding:10px 20px;cursor:pointer;transition:background .15s;display:inline-flex;align-items:center;gap:6px}
+.btn-primary:hover{background:#169E6A}
+.btn-primary:disabled{background:#B4B2A9;cursor:not-allowed}
+.btn-sec{background:transparent;border:1px solid #D3D1C7;border-radius:8px;color:#888780;font-family:inherit;font-size:12px;padding:7px 13px;cursor:pointer;transition:all .15s}
+.btn-sec:hover{border-color:#888780;color:#2C2C2A}
+.btn-sec.copied{border-color:#1D9E75;color:#1D9E75}
+.btn-row{display:flex;gap:8px;margin-top:12px;align-items:center;flex-wrap:wrap}
+.result-card{background:#fff;border:1px solid #E0DED8;border-radius:12px;padding:16px;margin-bottom:10px}
+.result-section{margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid #F1EFE8}
+.result-section:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none}
+.result-title{font-size:12px;font-weight:600;color:#2C2C2A;margin-bottom:8px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.badge{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:500}
+.badge-ok{background:#E1F5EE;color:#0F6E56}
+.badge-warn{background:#FFF9E6;color:#854F0B}
+.badge-err{background:#FCEBEB;color:#A32D2D}
+.result-text{font-size:12px;color:#5F5E5A;line-height:1.75}
+.muster-item{background:#F8F7F3;border-radius:6px;padding:8px 10px;margin-bottom:6px;border-left:3px solid #E0DED8}
+.muster-item.gefunden{border-left-color:#FAC775;background:#FFFBF0}
+.muster-item.ok{border-left-color:#1D9E75}
+.muster-name{font-size:11px;font-weight:600;color:#2C2C2A;margin-bottom:3px}
+.muster-text{font-size:11px;color:#5F5E5A;line-height:1.6}
+.tags{display:flex;flex-wrap:wrap;gap:5px}
+.tag{font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid #D3D1C7;color:#5F5E5A;background:transparent;cursor:pointer;user-select:none;transition:all .12s}
+.tag:hover{border-color:#888780;color:#2C2C2A}
+.tag.on{font-weight:500;background:#E6F1FB;border-color:#B5D4F4;color:#0C447C}
+.grp{margin-bottom:12px}
+.grp-hd{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.grp-name{font-size:12px;font-weight:600;color:#2C2C2A}
+.cnt{font-size:10px;background:#F1EFE8;border-radius:8px;padding:1px 6px;color:#888780}
+.neu-badge{font-size:9px;padding:1px 6px;border-radius:8px;background:#FAEEDA;color:#633806;border:1px solid #FAC775}
+.sb{background:#F8F7F3;border:1px solid #E0DED8;border-radius:8px;padding:10px 12px;margin-top:8px}
+.out{margin-top:7px;padding-top:7px;border-top:1px solid #E0DED8;font-size:11px;color:#888780;font-family:monospace;word-break:break-all;line-height:1.7}
+.loading{display:flex;align-items:center;gap:10px;color:#888780;font-size:12px}
+.spinner{width:18px;height:18px;border:2px solid #E0DED8;border-top-color:#1D9E75;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.info-box{background:#E6F1FB;border:1px solid #B5D4F4;border-radius:8px;padding:9px 12px;font-size:12px;color:#0C447C;margin-bottom:10px;line-height:1.6}
+.err-box{background:#FCEBEB;border:1px solid #F7C1C1;border-radius:8px;padding:9px 12px;font-size:12px;color:#A32D2D;margin-bottom:10px}
+.meta-row{display:flex;gap:14px;margin-top:8px;flex-wrap:wrap}
+.meta-item{font-size:11px;color:#888780}
+.meta-item span{color:#2C2C2A;font-weight:500}
+.selects-row{display:flex;gap:12px;flex-wrap:wrap}
+.select-group{display:flex;flex-direction:column;gap:4px}
+</style>
+</head>
+<body>
+
+<div id="lock-screen">
+  <div class="lock-card">
+    <div class="lock-icon">&#128274;</div>
+    <div class="lock-title">AVV Beitragscheck</div>
+    <div class="lock-sub">Redaktionswerkzeug für hoher-list.de<br>Nur für das AVV-Redaktionsteam.</div>
+    <input class="lock-input" type="password" id="lock-pw" placeholder="Passwort" onkeydown="if(event.key==='Enter')unlock()">
+    <div class="lock-err" id="lock-err"></div>
+    <button class="lock-btn" onclick="unlock()">Anmelden</button>
+    <div class="lock-hint">AVV Hoher List &middot; Öffentlichkeitsarbeit</div>
+  </div>
+</div>
+
+<div class="wrap" id="main-app" style="display:none">
+
+  <div class="logo-row">
+    <div class="dot"></div>
+    <span class="logo-text">AVV Hoher List &middot; Öffentlichkeitsarbeit</span>
+  </div>
+  <h1>Beitragscheck</h1>
+  <div class="tagline">Sprachstil &middot; Menschlichkeit &middot; Tags &mdash; Wizard v1.0</div>
+
+  <div class="api-bar">
+    <span>API-Key:</span>
+    <input type="password" id="apikey" placeholder="sk-ant-..." oninput="saveKey(this.value)">
+  </div>
+
+  <div class="steps">
+    <button class="step-btn active" id="step-btn-1" onclick="goStep(1)">
+      <span class="step-num">01</span>
+      <span class="step-name">Sprachstil</span>
+    </button>
+    <button class="step-btn locked" id="step-btn-2">
+      <span class="step-num">02</span>
+      <span class="step-name">Menschlichkeit</span>
+    </button>
+    <button class="step-btn locked" id="step-btn-3">
+      <span class="step-num">03</span>
+      <span class="step-name">Tags</span>
+    </button>
+  </div>
+
+  <!-- Panel 1 -->
+  <div id="panel-1">
+    <div class="card">
+      <span class="lbl">Beitragstext</span>
+      <textarea id="txt" placeholder="Titel und vollständigen Text des Beitrags hier einfügen…" oninput="updateMeta()"></textarea>
+      <div class="meta-row">
+        <div class="meta-item">Wörter: <span id="meta-words">0</span></div>
+        <div class="meta-item">Zeichen: <span id="meta-chars">0</span></div>
+        <div class="meta-item">Sätze: <span id="meta-sents">0</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="selects-row">
+        <div class="select-group">
+          <span class="lbl" style="margin-bottom:0">Kategorie</span>
+          <select id="cat">
+            <option value="">Bitte wählen</option>
+            <option value="Astrofotos">Astrofotos</option>
+            <option value="Wissenswertes">Wissenswertes</option>
+            <option value="Wissenschaft">Wissenschaft &amp; Forschung</option>
+            <option value="Neuigkeiten">Neuigkeiten / Neues aus dem Verein</option>
+            <option value="Veranstaltungen">Veranstaltungen</option>
+            <option value="Sternenhimmel">Aktueller Sternenhimmel</option>
+            <option value="Mitglieder">Mitglieder-Content</option>
+          </select>
+        </div>
+        <div class="select-group">
+          <span class="lbl" style="margin-bottom:0">Schreibmodus</span>
+          <select id="modus">
+            <option value="auto">Automatisch erkennen</option>
+            <option value="sachlich">Sachlich</option>
+            <option value="technisch">Technisch</option>
+            <option value="persoenlich">Persönlich</option>
+            <option value="emotional">Emotional</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div id="err-1" style="display:none" class="err-box"></div>
+    <div class="btn-row">
+      <button class="btn-primary" id="btn-1" onclick="runStep1()">Sprachstil prüfen &rarr;</button>
+      <span id="loading-1" style="display:none" class="loading"><div class="spinner"></div>Analysiere Sprachstil…</span>
+    </div>
+  </div>
+
+  <!-- Result 1 -->
+  <div id="result-1" style="display:none">
+    <div class="result-card">
+      <div class="result-section">
+        <div class="result-title">Gesamtbewertung <span class="badge" id="badge-gesamt"></span></div>
+        <div class="result-text" id="text-gesamt"></div>
+      </div>
+      <div class="result-section">
+        <div class="result-title">Ton &amp; Haltung <span class="badge" id="badge-ton"></span></div>
+        <div class="result-text" id="text-ton"></div>
+      </div>
+      <div class="result-section">
+        <div class="result-title">Satzbau &amp; Struktur <span class="badge" id="badge-satzbau"></span></div>
+        <div class="result-text" id="text-satzbau"></div>
+      </div>
+      <div class="result-section">
+        <div class="result-title">Länge &amp; Umfang <span class="badge" id="badge-laenge"></span></div>
+        <div class="result-text" id="text-laenge"></div>
+      </div>
+      <div class="result-section">
+        <div class="result-title">Verbesserungsvorschläge</div>
+        <div class="result-text" id="text-vorschlaege"></div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-primary" onclick="goStep(2)">Weiter: Menschlichkeit prüfen &rarr;</button>
+      <button class="btn-sec" onclick="resetAll()">Von vorne</button>
+    </div>
+  </div>
+
+  <!-- Panel 2 -->
+  <div id="panel-2" style="display:none">
+    <div class="info-box">Der Text wird jetzt auf 12 typische KI-Sprachmuster untersucht. Gefundene Muster werden konstruktiv kommentiert — nicht als Fehler bewertet.</div>
+    <div id="err-2" style="display:none" class="err-box"></div>
+    <div class="btn-row">
+      <button class="btn-primary" id="btn-2" onclick="runStep2()">Menschlichkeit prüfen &rarr;</button>
+      <span id="loading-2" style="display:none" class="loading"><div class="spinner"></div>Analysiere 12 Sprachmuster…</span>
+    </div>
+  </div>
+
+  <!-- Result 2 -->
+  <div id="result-2" style="display:none">
+    <div class="result-card">
+      <div class="result-section">
+        <div class="result-title">KI-Muster-Check <span class="badge" id="badge-muster"></span></div>
+        <div class="result-text" id="text-muster-summary"></div>
+      </div>
+      <div id="muster-list"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-primary" onclick="goStep(3)">Weiter: Tags vorschlagen &rarr;</button>
+      <button class="btn-sec" onclick="resetAll()">Von vorne</button>
+    </div>
+  </div>
+
+  <!-- Panel 3 -->
+  <div id="panel-3" style="display:none">
+    <div class="info-box">Abschließend werden passende Tags aus der Taxonomie v0.3 vorgeschlagen.</div>
+    <div id="err-3" style="display:none" class="err-box"></div>
+    <div class="btn-row">
+      <button class="btn-primary" id="btn-3" onclick="runStep3()">Tags analysieren &rarr;</button>
+      <span id="loading-3" style="display:none" class="loading"><div class="spinner"></div>Taxonomie v0.3 wird angewendet…</span>
+    </div>
+  </div>
+
+  <!-- Result 3 -->
+  <div id="result-3" style="display:none">
+    <div class="result-card">
+      <div class="result-section">
+        <div class="result-title">Tag-Vorschläge &middot; Taxonomie v0.3</div>
+        <div id="tag-info" class="result-text" style="margin-bottom:10px"></div>
+      </div>
+      <div id="tag-groups"></div>
+      <div class="sb">
+        <div style="font-size:10px;color:#888780;font-weight:500;margin-bottom:7px">Ausgewählte Tags (<span id="tag-cnt">0</span>)</div>
+        <div class="tags" id="sel-tags"><span style="font-size:12px;color:#888780">Keine Tags ausgewählt</span></div>
+        <div class="out" id="tag-out" style="display:none"></div>
+      </div>
+      <div class="btn-row" style="justify-content:flex-end">
+        <button class="btn-sec" onclick="resetAll()">Neuer Beitrag</button>
+        <button class="btn-sec" id="cpbtn" onclick="copyTags()">Tags kopieren</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+<script>
+const PASS_HASH='a6641fb523ee82d797d0e84c75dca208a1ace289fefc3a1d7112ed042601c294';
+async function sha256(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');}
+async function unlock(){const pw=document.getElementById('lock-pw').value;if(await sha256(pw)===PASS_HASH){localStorage.setItem('avv_unlocked','1');document.getElementById('lock-screen').style.display='none';document.getElementById('main-app').style.display='block';}else{const e=document.getElementById('lock-err');e.textContent='Falsches Passwort.';document.getElementById('lock-pw').value='';setTimeout(()=>e.textContent='',2000);}}
+function saveKey(v){localStorage.setItem('avv_apikey',v);}
+window.addEventListener('DOMContentLoaded',()=>{
+  if(localStorage.getItem('avv_unlocked')==='1'){document.getElementById('lock-screen').style.display='none';document.getElementById('main-app').style.display='block';}
+  const k=localStorage.getItem('avv_apikey');if(k)document.getElementById('apikey').value=k;
+});
+
+let currentStep=1,stepsCompleted=new Set(),cachedText='',tagSelected=new Set(),tagResult=null;
+
+function updateMeta(){
+  const t=document.getElementById('txt').value;
+  document.getElementById('meta-words').textContent=t.trim()?t.trim().split(/\s+/).length:0;
+  document.getElementById('meta-chars').textContent=t.length;
+  document.getElementById('meta-sents').textContent=t.split(/[.!?]+/).filter(s=>s.trim().length>3).length;
+}
+
+function goStep(n){
+  if(n>1&&!stepsCompleted.has(n-1))return;
+  currentStep=n;
+  [1,2,3].forEach(i=>{
+    const sb=document.getElementById('step-btn-'+i);
+    sb.className='step-btn'+(i===n?' active':stepsCompleted.has(i)?' done':' locked');
+    if(i!==n||!stepsCompleted.has(i))sb.onclick=i<=n&&(i===1||stepsCompleted.has(i-1))?()=>goStep(i):null;
+    document.getElementById('panel-'+i).style.display='none';
+    document.getElementById('result-'+i).style.display='none';
+  });
+  if(stepsCompleted.has(n)){document.getElementById('result-'+n).style.display='block';}
+  else{document.getElementById('panel-'+n).style.display='block';}
+}
+
+async function callAPI(system,user){
+  const key=document.getElementById('apikey').value.trim();
+  if(!key)throw new Error('Bitte API-Key eingeben.');
+  const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:1500,system,messages:[{role:'user',content:user}]})});
+  const d=await r.json();
+  if(d.error)throw new Error(d.error.message);
+  let raw=(d.content?.find(b=>b.type==='text')?.text||'').trim();
+  raw=raw.replace(/^```json\s*/i,'').replace(/^```\s*/,'').replace(/\s*```$/,'').trim();
+  return JSON.parse(raw);
+}
+
+function setBadge(id,val){const el=document.getElementById(id);if(!el)return;const m={ok:['i. O.','badge-ok'],gut:['Gut','badge-ok'],warn:['Hinweis','badge-warn'],fehler:['Überarbeiten','badge-err']};const[txt,cls]=m[val]||['–',''];el.textContent=txt;el.className='badge '+cls;}
+function setHTML(id,txt){const el=document.getElementById(id);if(el)el.innerHTML=(txt||'').replace(/\n/g,'<br>');}
+
+const P_STIL=`Du bist Redaktionsassistent der AVV (Astronomische Vereinigung Vulkaneifel am Hohen List e.V.).
+Prüfe den Beitragstext anhand des AVV-Sprachstil-Guides. Sei konstruktiv, nie belehrend.
+
+SPRACHSTIL-GUIDE:
+- Grundton: freundlich, offen, sachlich — nie belehrend oder distanziert
+- Keine Superlative ohne Substanz (einzigartig, spektakulär, faszinierend — nur wenn wirklich zutreffend)
+- Keine leeren Einleitungen ("In einer Zeit, in der...", "Seit jeher...")
+- Aktive Sprache statt Passiv ("wir haben beobachtet" statt "es wurde beobachtet")
+- Kurze Sätze bevorzugen, ein Gedanke pro Satz, Hauptsatz vor Nebensatz
+- Fachbegriffe beim ersten Vorkommen kurz erläutern
+- Ich-Perspektive bei persönlichen Berichten erlaubt und erwünscht
+- Wir-Perspektive bei Vereinsberichten
+
+EMPFOHLENE LÄNGEN: Beobachtungsbericht 300-600W, Wissensbeitrag 500-900W, Veranstaltungsankündigung 150-300W, Astrofoto 100-200W, Vereinsnachricht 100-250W
+
+Antworte NUR mit JSON ohne Backticks:
+{"modus_erkannt":"sachlich|technisch|persoenlich|emotional","gesamt":"ok|warn|fehler","gesamt_text":"2-3 Sätze Gesamtbewertung","ton":"ok|warn|fehler","ton_text":"konkrete Beobachtung zum Ton","satzbau":"ok|warn|fehler","satzbau_text":"konkrete Beobachtung zur Struktur","laenge":"ok|warn|fehler","laenge_text":"Wortanzahl und ob sie zur Kategorie passt","vorschlaege":"konkrete Verbesserungsvorschläge, konstruktiv, max 3 Punkte"}`;
+
+async function runStep1(){
+  const txt=document.getElementById('txt').value.trim();
+  if(!txt){const e=document.getElementById('err-1');e.textContent='Bitte Beitragstext eingeben.';e.style.display='block';return;}
+  document.getElementById('err-1').style.display='none';
+  document.getElementById('btn-1').style.display='none';
+  document.getElementById('loading-1').style.display='flex';
+  const cat=document.getElementById('cat').value,modus=document.getElementById('modus').value;
+  try{
+    const p=await callAPI(P_STIL,(cat?'Kategorie: '+cat+'\n':'')+(modus!=='auto'?'Schreibmodus: '+modus+'\n':'')+'\nBeitragstext:\n'+txt);
+    cachedText=txt;
+    setBadge('badge-gesamt',p.gesamt);setHTML('text-gesamt',p.gesamt_text);
+    setBadge('badge-ton',p.ton);setHTML('text-ton',p.ton_text);
+    setBadge('badge-satzbau',p.satzbau);setHTML('text-satzbau',p.satzbau_text);
+    setBadge('badge-laenge',p.laenge);setHTML('text-laenge',p.laenge_text);
+    setHTML('text-vorschlaege',p.vorschlaege);
+    stepsCompleted.add(1);
+    document.getElementById('step-btn-1').className='step-btn done';
+    const s2=document.getElementById('step-btn-2');s2.className='step-btn';s2.onclick=()=>goStep(2);
+    document.getElementById('panel-1').style.display='none';
+    document.getElementById('result-1').style.display='block';
+  }catch(e){const el=document.getElementById('err-1');el.textContent='⚠ '+e.message;el.style.display='block';}
+  document.getElementById('btn-1').style.display='inline-flex';
+  document.getElementById('loading-1').style.display='none';
+}
+
+const P_MENSCH=`Du bist Redaktionsassistent der AVV. Prüfe den Text auf 12 KI-Sprachmuster. Sei konstruktiv.
+
+12 MUSTER:
+1. Gleichförmige Satzlänge — fehlt Variation zwischen kurzen und langen Sätzen
+2. Überperfekte Übergänge — jeder Absatz fließt zu perfekt in den nächsten
+3. Fehlende Übergangsbrüche — keine spontanen Gedankenwechsel oder Einschübe
+4. Sichere erwartbare Wortwahl — keine überraschenden Formulierungen
+5. Fehlende Modalpartikeln — kein "halt", "mal", "doch", "eben" (NUR bei persönlich/emotional relevant)
+6. Überkorrekte Grammatik — zu steril (NUR bei persönlich/emotional relevant)
+7. Fehlende Unsicherheitsmarker — alles klingt wie Tatsache, kein "ich glaube", "gefühlt"
+8. Keine Anekdoten oder Mikro-Erlebnisse — generisch, könnte über jeden Verein stehen
+9. Fehlende Diskursmarker — kein "ehrlich gesagt", "eigentlich", "naja"
+10. Überkohäsive Absätze — alles perfekt verbunden
+11. Keine Ambivalenz — jede Aussage eindeutig positiv oder negativ
+12. Fehlende semantische Überraschungen — keine Wendungen oder unerwarteten Formulierungen
+
+Gib alle 12 Muster zurück. Antworte NUR mit JSON ohne Backticks:
+{"modus":"sachlich|technisch|persoenlich|emotional","anzahl_gefunden":0,"zusammenfassung":"1-2 Sätze","muster":[{"nr":1,"name":"Gleichförmige Satzlänge","gefunden":false,"hinweis":"kurzer Kommentar"}]}`;
+
+async function runStep2(){
+  if(!cachedText)return;
+  document.getElementById('err-2').style.display='none';
+  document.getElementById('btn-2').style.display='none';
+  document.getElementById('loading-2').style.display='flex';
+  const modus=document.getElementById('modus').value;
+  try{
+    const p=await callAPI(P_MENSCH,(modus!=='auto'?'Schreibmodus: '+modus+'\n':'')+'\nBeitragstext:\n'+cachedText);
+    const anz=p.anzahl_gefunden||0;
+    const bm=document.getElementById('badge-muster');bm.textContent=anz+' von 12 erkannt';bm.className='badge '+(anz===0?'badge-ok':anz<=3?'badge-warn':'badge-err');
+    setHTML('text-muster-summary',p.zusammenfassung);
+    const list=document.getElementById('muster-list');list.innerHTML='';
+    (p.muster||[]).forEach(m=>{
+      const div=document.createElement('div');div.className='muster-item '+(m.gefunden?'gefunden':'ok');
+      div.innerHTML=`<div class="muster-name">${m.nr}. ${m.name} <span style="font-size:10px;font-weight:400;color:${m.gefunden?'#854F0B':'#1D9E75'}">${m.gefunden?'— Hinweis':'— OK'}</span></div><div class="muster-text">${m.hinweis||''}</div>`;
+      list.appendChild(div);
+    });
+    stepsCompleted.add(2);
+    document.getElementById('step-btn-2').className='step-btn done';
+    const s3=document.getElementById('step-btn-3');s3.className='step-btn';s3.onclick=()=>goStep(3);
+    document.getElementById('panel-2').style.display='none';
+    document.getElementById('result-2').style.display='block';
+  }catch(e){const el=document.getElementById('err-2');el.textContent='⚠ '+e.message;el.style.display='block';}
+  document.getElementById('btn-2').style.display='inline-flex';
+  document.getElementById('loading-2').style.display='none';
+}
+
+const P_TAGS=`Du bist Verschlagwortungs-Assistent für hoher-list.de (AVV).
+Analysiere den Text. Antworte NUR mit JSON ohne Backticks.
+REGELN: Tags klein schreiben, Katalog OHNE Leerzeichen (M42, NGC7000), Katalognummer+Klarname beide setzen, 3-7 Tags, NICHT: Jahreszahlen, Monatsnamen, Artikeltypen.
+MESSIER: M1=Krebsnebel,M6=Schmetterlingshaufen,M7=Ptolemäus-Haufen,M8=Lagunennebel,M11=Wildentenhaufen,M13=Herkules-Kugelsternhaufen,M16=Adlernebel,M17=Schwanennebel,M20=Trifidnebel,M24=Sagittarius-Sternwolke,M27=Hantelnebel,M31=Andromedagalaxie,M33=Dreiecksgalaxie,M42=Orionnebel,M43=De Mairan-Nebel,M44=Krippe,M45=Plejaden,M51=Whirlpool-Galaxie,M57=Ringnebel,M63=Sonnenblumengalaxie,M64=Schwarzaugengalaxie,M76=Kleiner Hantelnebel,M81=Bode-Galaxie,M82=Zigarrengalaxie,M83=Südliche Feuerradgalaxie,M87=Virgogalaxie,M97=Eulennebel,M101=Feuerradgalaxie,M102=Spindelgalaxie,M104=Sombrerogalaxie
+NGC/IC: NGC224=Andromedagalaxie,NGC869=Perseusdoppelhaufen,NGC1499=Kaliforniennebel,NGC1952=Krebsnebel,NGC2070=Tarantelnebel,NGC2244=Rosettennebel,NGC2392=Eskimonebel,NGC3372=Eta-Carinae-Nebel,NGC5128=Centaurus A,NGC5139=Omega Centauri,NGC6960=Westlicher Schleiernebel,NGC6992=Östlicher Schleiernebel,NGC7000=Nordamerikanebel,NGC7293=Helixnebel,IC434=Pferdekopfnebel,IC1805=Herznebel,IC1848=Seelennebel,IC2118=Hexenkopfnebel,IC5146=Kokonnebel
+OBJEKTTYPEN: galaxie,emissionsnebel,reflexionsnebel,planetarischer-nebel,dunkelnebel,offener-sternhaufen,kugelsternhaufen,doppelstern,veraenderlicher-stern,planet,mond,asteroid,komet,supernova,schwarzes-loch,neutronenstern,sonne
+BEOBACHTUNG: visuelle-beobachtung,astrofotografie,deepsky,planetenbeobachtung,sonnenbeobachtung,mondbeobachtung,spektroskopie,okkulatation,transit,meteore,beobachtungsnacht,seeing,lichtverschmutzung
+AUSRÜSTUNG: teleskop,refraktor,reflektor,dobson,schmidt-cassegrain,newton,montierung,kamera,okular,filter,bildbearbeitung,software,selbstbau,sternwarte-technik
+WISSEN: astrophysik,kosmologie,raumfahrt,exoplaneten,astrobiologie,radioastronomie,geschichte-der-astronomie,sternbilder,himmelsphänomen,sonnenfinsternis,mondfinsternis,polarlichter,konjunktion,opposition
+VEREIN/ORT: hoher-list,avv,vereinsleben,vortrag,fuehrung,beobachtungsabend,astrocamp,jugend,astro-ag,partner,vulkaneifel,sternenpark,ausstellung,nürnberg,köln,bonn,berlin
+ZIELGRUPPE: einsteiger,fortgeschrittene,kinder-jugendliche,familien
+PERSONEN: vorname-nachname (klein, Bindestrich) — nur wenn inhaltlich zentral
+FORMAT: {"reasoning":"1-2 Sätze","tags":{"Katalog_Messier":[],"Katalog_NGC_IC":[],"Objekttyp":[],"Beobachtung":[],"Ausruestung":[],"Wissen":[],"Verein_Ort":[],"Zielgruppe":[],"Personen":[],"Neu":[]}}`;
+
+const TAG_GROUPS=[{k:'Katalog_Messier',l:'Katalog – Messier'},{k:'Katalog_NGC_IC',l:'Katalog – NGC / IC'},{k:'Objekttyp',l:'Objekttyp'},{k:'Beobachtung',l:'Beobachtung & Methodik'},{k:'Ausruestung',l:'Ausrüstung & Technik'},{k:'Wissen',l:'Themen & Wissensgebiete'},{k:'Verein_Ort',l:'Verein, Ort & Veranstaltungen'},{k:'Zielgruppe',l:'Zielgruppe'},{k:'Personen',l:'Personen'},{k:'Neu',l:'Neue Vorschläge',neu:true}];
+
+async function runStep3(){
+  if(!cachedText)return;
+  document.getElementById('err-3').style.display='none';
+  document.getElementById('btn-3').style.display='none';
+  document.getElementById('loading-3').style.display='flex';
+  const cat=document.getElementById('cat').value;
+  try{
+    const p=await callAPI(P_TAGS,(cat?'Kategorie: '+cat+'\n':'')+'\nBeitragstext:\n'+cachedText);
+    tagResult=p;tagSelected=new Set();
+    Object.values(p.tags||{}).flat().forEach(t=>{if(t)tagSelected.add(t);});
+    if(p.reasoning)document.getElementById('tag-info').innerHTML='<strong>Analyse:</strong> '+p.reasoning;
+    const g=document.getElementById('tag-groups');g.innerHTML='';
+    TAG_GROUPS.forEach(grp=>{
+      const tags=p.tags?.[grp.k]||[];if(!tags.length)return;
+      const div=document.createElement('div');div.className='grp';
+      div.innerHTML=`<div class="grp-hd"><span class="grp-name">${grp.l}</span><span class="cnt">${tags.length}</span>${grp.neu?'<span class="neu-badge">Neu</span>':''}</div><div class="tags" id="tg_${grp.k}"></div>`;
+      g.appendChild(div);
+      tags.forEach(t=>{const el=document.createElement('span');el.className='tag'+(tagSelected.has(t)?' on':'');el.textContent=t+(tagSelected.has(t)?' ×':' +');el.onclick=()=>toggleTag(t,el);div.querySelector('#tg_'+grp.k).appendChild(el);});
+    });
+    updateTagSel();
+    stepsCompleted.add(3);
+    document.getElementById('step-btn-3').className='step-btn done';
+    document.getElementById('panel-3').style.display='none';
+    document.getElementById('result-3').style.display='block';
+  }catch(e){const el=document.getElementById('err-3');el.textContent='⚠ '+e.message;el.style.display='block';}
+  document.getElementById('btn-3').style.display='inline-flex';
+  document.getElementById('loading-3').style.display='none';
+}
+
+function toggleTag(t,el){if(tagSelected.has(t)){tagSelected.delete(t);el.className='tag';el.textContent=t+' +';}else{tagSelected.add(t);el.className='tag on';el.textContent=t+' ×';}updateTagSel();}
+function updateTagSel(){
+  const arr=[...tagSelected];
+  document.getElementById('tag-cnt').textContent=arr.length;
+  const box=document.getElementById('sel-tags');
+  box.innerHTML=arr.length===0?'<span style="font-size:12px;color:#888780">Keine Tags ausgewählt</span>':arr.map(t=>`<span class="tag on" onclick="removeTag('${t.replace(/'/g,"\\'")}');">${t}</span>`).join('');
+  const out=document.getElementById('tag-out');
+  if(arr.length>0){out.textContent=arr.join(', ');out.style.display='block';}else out.style.display='none';
+}
+function removeTag(t){tagSelected.delete(t);document.querySelectorAll('.tag').forEach(el=>{if(el.textContent.startsWith(t+' ')){el.className='tag';el.textContent=t+' +';}});updateTagSel();}
+function copyTags(){const arr=[...tagSelected];if(!arr.length)return;navigator.clipboard.writeText(arr.join(', '));const b=document.getElementById('cpbtn');b.textContent='✓ Kopiert';b.classList.add('copied');setTimeout(()=>{b.textContent='Tags kopieren';b.classList.remove('copied');},1500);}
+
+function resetAll(){
+  stepsCompleted=new Set();cachedText='';tagSelected=new Set();tagResult=null;
+  document.getElementById('txt').value='';document.getElementById('cat').value='';document.getElementById('modus').value='auto';
+  [1,2,3].forEach(i=>{
+    const p=document.getElementById('panel-'+i);if(p)p.style.display=i===1?'block':'none';
+    const r=document.getElementById('result-'+i);if(r)r.style.display='none';
+    const e=document.getElementById('err-'+i);if(e)e.style.display='none';
+    const b=document.getElementById('btn-'+i);if(b)b.style.display='inline-flex';
+    const l=document.getElementById('loading-'+i);if(l)l.style.display='none';
+  });
+  document.getElementById('step-btn-1').className='step-btn active';
+  document.getElementById('step-btn-2').className='step-btn locked';
+  document.getElementById('step-btn-3').className='step-btn locked';
+  updateMeta();
+}
+</script>
+</body>
+</html>
