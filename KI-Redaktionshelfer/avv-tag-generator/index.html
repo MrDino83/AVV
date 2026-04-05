@@ -259,7 +259,8 @@ async function analyze(){
     });
     const data = await resp.json();
     if(data.error) throw new Error(data.error.message);
-    const raw = (data.content?.find(b=>b.type==='text')?.text||'').trim();
+    let raw = (data.content?.find(b=>b.type==='text')?.text||'').trim();
+    raw = raw.replace(/^```json\s*/i,'').replace(/^```\s*/,'').replace(/\s*```$/,'').trim();
     const p = JSON.parse(raw);
     Object.values(p.tags||{}).flat().forEach(t=>{ if(t) selected.add(t); });
     currentResult = p;
