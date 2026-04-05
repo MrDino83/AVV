@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AVV Tag-Generator · Taxonomie v0.3</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,sans-serif;font-size:13px;background:#f5f4f0;color:#2C2C2A;padding:20px 16px;min-height:100vh}
+  .wrap{max-width:680px;margin:0 auto}
+  header{margin-bottom:18px}
+  .logo-row{display:flex;align-items:center;gap:7px;margin-bottom:4px}
+  .dot{width:8px;height:8px;border-radius:50%;background:#1D9E75}
+  .logo-text{font-size:10px;font-weight:600;letter-spacing:.1em;color:#888780;text-transform:uppercase}
+  h1{font-size:22px;font-weight:700;color:#1A1A18}
+  .tagline{font-size:11px;color:#888780;margin-top:3px}
+  .card{background:#fff;border:1px solid #E0DED8;border-radius:12px;padding:14px 16px;margin-bottom:10px}
+  .lbl{font-size:10px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:#888780;margin-bottom:8px;display:block}
+  textarea{width:100%;background:#F8F7F3;border:1px solid #E0DED8;border-radius:8px;color:#2C2C2A;font-family:inherit;font-size:13px;line-height:1.65;padding:10px 12px;resize:vertical;min-height:130px;outline:none}
+  textarea:focus{border-color:#1D9E75}
+  select{width:100%;background:#F8F7F3;border:1px solid #E0DED8;border-radius:8px;color:#2C2C2A;font-family:inherit;font-size:12px;padding:8px 11px;outline:none;margin-top:8px;cursor:pointer}
+  .btn-primary{width:100%;background:#1D9E75;color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:13px;font-weight:600;padding:11px;cursor:pointer;margin-top:8px;transition:background .15s}
+  .btn-primary:hover{background:#169E6A}
+  .btn-primary:disabled{background:#B4B2A9;cursor:not-allowed}
+  .api-note{background:#FFF9E6;border:1px solid #FAC775;border-radius:8px;padding:10px 12px;font-size:12px;color:#633806;margin-bottom:10px}
+  .api-note strong{display:block;margin-bottom:4px}
+  .api-input{width:100%;background:#fff;border:1px solid #E0DED8;border-radius:6px;font-family:monospace;font-size:12px;padding:7px 10px;outline:none;margin-top:6px;color:#2C2C2A}
+  .api-input:focus{border-color:#1D9E75}
+  .err{background:#FCEBEB;border:1px solid #F7C1C1;border-radius:8px;padding:9px 12px;font-size:12px;color:#A32D2D;margin-bottom:10px}
+  .info{background:#E6F1FB;border:1px solid #B5D4F4;border-radius:8px;padding:9px 12px;font-size:12px;color:#0C447C;margin-bottom:12px;line-height:1.6}
+  .grp{margin-bottom:13px}
+  .grp-hd{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+  .grp-name{font-size:12px;font-weight:600;color:#2C2C2A}
+  .cnt{font-size:10px;background:#F1EFE8;border-radius:8px;padding:1px 6px;color:#888780}
+  .neu{font-size:9px;padding:1px 6px;border-radius:8px;background:#FAEEDA;color:#633806;border:1px solid #FAC775}
+  .tags{display:flex;flex-wrap:wrap;gap:5px}
+  .tag{font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid #D3D1C7;color:#5F5E5A;background:transparent;cursor:pointer;user-select:none;transition:all .12s}
+  .tag:hover{border-color:#888780;color:#2C2C2A}
+  .tag.on{font-weight:500;background:#E6F1FB;border-color:#B5D4F4;color:#0C447C}
+  .sb{background:#F8F7F3;border:1px solid #E0DED8;border-radius:8px;padding:10px 12px;margin-top:6px}
+  .sb-lbl{font-size:10px;color:#888780;font-weight:500;margin-bottom:7px}
+  .out{margin-top:7px;padding-top:7px;border-top:1px solid #E0DED8;font-size:11px;color:#888780;font-family:monospace;word-break:break-all;line-height:1.7}
+  .brow{display:flex;gap:7px;margin-top:9px;justify-content:flex-end}
+  .btn-sec{background:transparent;border:1px solid #D3D1C7;border-radius:8px;color:#888780;font-family:inherit;font-size:12px;padding:7px 13px;cursor:pointer;transition:all .15s}
+  .btn-sec:hover{border-color:#888780;color:#2C2C2A}
+  .btn-sec.copied{border-color:#1D9E75;color:#1D9E75}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="logo-row">
+      <div class="dot"></div>
+      <span class="logo-text">AVV Hoher List &middot; Öffentlichkeitsarbeit</span>
+    </div>
+    <h1>Tag-Generator</h1>
+    <div class="tagline">Taxonomie v0.3 &middot; Messier M1–M110 &middot; NGC/IC &middot; 9 Gruppen</div>
+  </header>
+
+  <div class="api-note">
+    <strong>API-Key erforderlich</strong>
+    Trage einmalig deinen Anthropic API-Key ein. Er wird nur lokal in diesem Browser gespeichert und nie an Dritte übertragen.
+    <input class="api-input" type="password" id="apikey" placeholder="sk-ant-..." oninput="saveKey(this.value)">
+  </div>
+
+  <div class="card">
+    <span class="lbl">Beitragstext eingeben</span>
+    <textarea id="txt" placeholder="Titel und Text des Beitrags hier einfügen…"></textarea>
+    <select id="cat">
+      <option value="">Kategorie (optional)</option>
+      <option value="Astrofotos">Astrofotos</option>
+      <option value="Wissenswertes">Wissenswertes</option>
+      <option value="Wissenschaft">Wissenschaft &amp; Forschung</option>
+      <option value="Neuigkeiten">Neuigkeiten / Neues aus dem Verein</option>
+      <option value="Veranstaltungen">Veranstaltungen</option>
+      <option value="Sternenhimmel">Aktueller Sternenhimmel</option>
+      <option value="Mitglieder">Mitglieder-Content</option>
+    </select>
+    <button class="btn-primary" id="btn" onclick="analyze()">Tags analysieren</button>
+  </div>
+
+  <div id="err" style="display:none" class="err"></div>
+
+  <div id="res" style="display:none" class="card">
+    <span class="lbl">Tag-Vorschläge &middot; Taxonomie v0.3</span>
+    <div id="info" class="info"></div>
+    <div id="groups"></div>
+    <div class="sb">
+      <div class="sb-lbl">Ausgewählte Tags (<span id="cnt">0</span>)</div>
+      <div class="tags" id="sel-tags"><span style="font-size:12px;color:#888780">Keine Tags ausgewählt</span></div>
+      <div class="out" id="out" style="display:none"></div>
+    </div>
+    <div class="brow">
+      <button class="btn-sec" onclick="reset()">Zurücksetzen</button>
+      <button class="btn-sec" id="cpbtn" onclick="copyTags()">Tags kopieren</button>
+    </div>
+  </div>
+
+</div>
+<script>
+const SYSTEM = `Du bist Verschlagwortungs-Assistent für hoher-list.de (AVV Hoher List).
+Analysiere den Beitragstext. Antworte NUR mit JSON ohne Backticks oder Markdown.
+
+TAXONOMIE v0.3 — REGELN:
+- Tags klein schreiben, Eigennamen/Kataloge ausgenommen
+- Katalog OHNE Leerzeichen: M42, NGC7000, IC434
+- Katalognummer + Klarname beide setzen wenn vorhanden (M42 + Orionnebel)
+- 3-7 Tags pro Beitrag, nur tatsächlich im Text belegte Tags
+- NICHT verwenden: Jahreszahlen, Monatsnamen, Artikeltypen (Besuchsbericht etc.)
+
+MESSIER MIT KLARNAMEN:
+M1=Krebsnebel, M6=Schmetterlingshaufen, M7=Ptolemäus-Haufen, M8=Lagunennebel,
+M11=Wildentenhaufen, M13=Herkules-Kugelsternhaufen, M16=Adlernebel, M17=Schwanennebel,
+M20=Trifidnebel, M24=Sagittarius-Sternwolke, M27=Hantelnebel, M31=Andromedagalaxie,
+M33=Dreiecksgalaxie, M42=Orionnebel, M43=De Mairan-Nebel, M44=Krippe, M45=Plejaden,
+M51=Whirlpool-Galaxie, M57=Ringnebel, M63=Sonnenblumengalaxie, M64=Schwarzaugengalaxie,
+M76=Kleiner Hantelnebel, M81=Bode-Galaxie, M82=Zigarrengalaxie,
+M83=Südliche Feuerradgalaxie, M87=Virgogalaxie, M97=Eulennebel,
+M101=Feuerradgalaxie, M102=Spindelgalaxie, M104=Sombrerogalaxie
+Alle anderen M-Objekte: nur Katalognummer.
+
+NGC/IC MIT KLARNAMEN:
+NGC224=Andromedagalaxie, NGC869=Perseusdoppelhaufen, NGC1499=Kaliforniennebel,
+NGC1952=Krebsnebel, NGC2070=Tarantelnebel, NGC2244=Rosettennebel,
+NGC2392=Eskimonebel, NGC3372=Eta-Carinae-Nebel, NGC5128=Centaurus A,
+NGC5139=Omega Centauri, NGC6960=Westlicher Schleiernebel,
+NGC6992=Östlicher Schleiernebel, NGC7000=Nordamerikanebel, NGC7293=Helixnebel,
+IC434=Pferdekopfnebel, IC1805=Herznebel, IC1848=Seelennebel,
+IC2118=Hexenkopfnebel, IC5146=Kokonnebel
+
+OBJEKTTYPEN: galaxie, emissionsnebel, reflexionsnebel, planetarischer-nebel, dunkelnebel,
+offener-sternhaufen, kugelsternhaufen, doppelstern, veraenderlicher-stern,
+planet, mond, asteroid, komet, supernova, schwarzes-loch, neutronenstern, sonne
+
+BEOBACHTUNG: visuelle-beobachtung, astrofotografie, deepsky, planetenbeobachtung,
+sonnenbeobachtung, mondbeobachtung, spektroskopie, okkulatation, transit,
+meteore, beobachtungsnacht, seeing, lichtverschmutzung
+
+AUSRÜSTUNG: teleskop, refraktor, reflektor, dobson, schmidt-cassegrain, newton,
+montierung, kamera, okular, filter, bildbearbeitung, software, selbstbau, sternwarte-technik
+
+WISSEN: astrophysik, kosmologie, raumfahrt, exoplaneten, astrobiologie, radioastronomie,
+geschichte-der-astronomie, sternbilder, himmelsphänomen, sonnenfinsternis,
+mondfinsternis, polarlichter, konjunktion, opposition
+
+VEREIN/ORT: hoher-list, avv, vereinsleben, vortrag, fuehrung, beobachtungsabend,
+astrocamp, jugend, astro-ag, partner, vulkaneifel, sternenpark, ausstellung,
+nürnberg, köln, bonn, berlin
+
+ZIELGRUPPE (nur wenn klar erkennbar): einsteiger, fortgeschrittene, kinder-jugendliche, familien
+
+PERSONEN: Format vorname-nachname (klein, Bindestrich) – nur wenn inhaltlich zentral
+
+JSON-FORMAT (exakt, kein Text davor oder danach):
+{"reasoning":"1-2 Sätze Analyse","tags":{"Katalog_Messier":[],"Katalog_NGC_IC":[],"Objekttyp":[],"Beobachtung":[],"Ausruestung":[],"Wissen":[],"Verein_Ort":[],"Zielgruppe":[],"Personen":[],"Neu":[]}}`;
+
+const GROUPS = [
+  {k:'Katalog_Messier', l:'Katalog – Messier'},
+  {k:'Katalog_NGC_IC',  l:'Katalog – NGC / IC'},
+  {k:'Objekttyp',       l:'Objekttyp'},
+  {k:'Beobachtung',     l:'Beobachtung & Methodik'},
+  {k:'Ausruestung',     l:'Ausrüstung & Technik'},
+  {k:'Wissen',          l:'Themen & Wissensgebiete'},
+  {k:'Verein_Ort',      l:'Verein, Ort & Veranstaltungen'},
+  {k:'Zielgruppe',      l:'Zielgruppe'},
+  {k:'Personen',        l:'Personen'},
+  {k:'Neu',             l:'Neue Vorschläge (außerhalb Taxonomie)', neu:true},
+];
+
+let selected = new Set();
+let currentResult = null;
+
+function saveKey(v){ localStorage.setItem('avv_apikey', v); }
+window.onload = () => {
+  const k = localStorage.getItem('avv_apikey');
+  if(k) document.getElementById('apikey').value = k;
+};
+
+async function analyze(){
+  const txt = document.getElementById('txt').value.trim();
+  const key = document.getElementById('apikey').value.trim();
+  if(!txt){ alert('Bitte Beitragstext eingeben.'); return; }
+  if(!key){ alert('Bitte API-Key eingeben.'); return; }
+  const cat = document.getElementById('cat').value;
+  const btn = document.getElementById('btn');
+  btn.disabled = true; btn.textContent = 'Analysiere…';
+  document.getElementById('err').style.display = 'none';
+  document.getElementById('res').style.display = 'none';
+  selected = new Set();
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 900,
+        system: SYSTEM,
+        messages: [{role:'user', content:(cat?'Kategorie: '+cat+'\n\n':'')+'Beitragstext:\n'+txt}]
+      })
+    });
+    const data = await resp.json();
+    if(data.error) throw new Error(data.error.message);
+    const raw = (data.content?.find(b=>b.type==='text')?.text||'').trim();
+    const p = JSON.parse(raw);
+    Object.values(p.tags||{}).flat().forEach(t=>{ if(t) selected.add(t); });
+    currentResult = p;
+    renderResult(p);
+  } catch(e) {
+    const errEl = document.getElementById('err');
+    errEl.textContent = '⚠ ' + e.message;
+    errEl.style.display = 'block';
+  }
+  btn.disabled = false; btn.textContent = 'Tags analysieren';
+}
+
+function renderResult(p){
+  if(p.reasoning){
+    document.getElementById('info').innerHTML = '<strong>Analyse:</strong> ' + p.reasoning;
+  }
+  const g = document.getElementById('groups');
+  g.innerHTML = '';
+  GROUPS.forEach(grp => {
+    const tags = p.tags?.[grp.k] || [];
+    if(!tags.length) return;
+    const div = document.createElement('div');
+    div.className = 'grp';
+    div.innerHTML = `<div class="grp-hd">
+      <span class="grp-name">${grp.l}</span>
+      <span class="cnt">${tags.length}</span>
+      ${grp.neu ? '<span class="neu">Ergänzungsvorschlag</span>' : ''}
+    </div><div class="tags" id="g_${grp.k}"></div>`;
+    g.appendChild(div);
+    const row = div.querySelector('#g_'+grp.k);
+    tags.forEach(t => {
+      const el = document.createElement('span');
+      el.className = 'tag' + (selected.has(t) ? ' on' : '');
+      el.textContent = t + (selected.has(t) ? ' ×' : ' +');
+      el.onclick = () => toggleTag(t, el);
+      row.appendChild(el);
+    });
+  });
+  updateSelected();
+  document.getElementById('res').style.display = 'block';
+}
+
+function toggleTag(t, el){
+  if(selected.has(t)){ selected.delete(t); el.className='tag'; el.textContent=t+' +'; }
+  else { selected.add(t); el.className='tag on'; el.textContent=t+' ×'; }
+  updateSelected();
+}
+
+function updateSelected(){
+  const arr = [...selected];
+  document.getElementById('cnt').textContent = arr.length;
+  const box = document.getElementById('sel-tags');
+  if(arr.length === 0){
+    box.innerHTML = '<span style="font-size:12px;color:#888780">Keine Tags ausgewählt</span>';
+  } else {
+    box.innerHTML = arr.map(t => {
+      const safe = t.replace(/'/g,"\\'");
+      return `<span class="tag on" onclick="toggleFromSel('${safe}')" style="cursor:pointer">${t}</span>`;
+    }).join('');
+  }
+  const out = document.getElementById('out');
+  if(arr.length > 0){ out.textContent = arr.join(', '); out.style.display='block'; }
+  else { out.style.display='none'; }
+}
+
+function toggleFromSel(t){
+  selected.delete(t);
+  if(currentResult){
+    document.querySelectorAll('.tag').forEach(el=>{
+      if(el.textContent.startsWith(t+' ')){
+        el.className='tag'; el.textContent=t+' +';
+      }
+    });
+  }
+  updateSelected();
+}
+
+function copyTags(){
+  const arr = [...selected];
+  if(!arr.length) return;
+  navigator.clipboard.writeText(arr.join(', '));
+  const btn = document.getElementById('cpbtn');
+  btn.textContent = '✓ Kopiert'; btn.classList.add('copied');
+  setTimeout(()=>{ btn.textContent='Tags kopieren'; btn.classList.remove('copied'); }, 1500);
+}
+
+function reset(){
+  document.getElementById('txt').value='';
+  document.getElementById('cat').value='';
+  document.getElementById('res').style.display='none';
+  document.getElementById('err').style.display='none';
+  selected=new Set(); currentResult=null;
+}
+</script>
+</body>
+</html>
